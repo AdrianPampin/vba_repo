@@ -1,0 +1,71 @@
+
+
+Public Sub resumenDinamica()
+
+   ActiveSheet.PivotTables("td_actu").RefreshTable
+   ActiveSheet.PivotTables("td_actu").PivotFields("Dia").DataRange.Sort order1:=xlAscending, Type:=xlSortLabels
+
+    Dim linea As New Collection
+    Dim dias As New Collection
+    Dim rng_linea As Range
+    Set rng_linea = Range(Range("A4"), Range("a4").End(xlDown))
+    Dim rng_dias As Range
+    Set rng_dias = Range(Range("b4"), Range("b4").End(xlDown))
+    Dim rng_referencias As Range
+    Set rng_referencias = Range(Range("c4"), Range("c4").End(xlDown))
+    
+    
+    Dim fila As Range
+    On Error Resume Next
+    For Each fila In rng_linea
+        linea.Add CStr(fila.Value), CStr(fila.Value)
+    Next fila
+    For Each fila In rng_dias
+        dias.Add fila.Value, CStr(fila.Value)
+    Next fila
+    
+    Dim rango_tabla_resumen As Range
+    Set rango_tabla_resumen = Range("H10")
+    rango_tabla_resumen.CurrentRegion.EntireColumn.Clear
+    rango_tabla_resumen.Activate
+    
+    Dim contafilas As Integer
+    contafilas = 2
+    Dim maxContafilas As Integer
+    maxContafilas = 2
+    
+    
+    
+    For i = 1 To linea.Count
+        ActiveCell.Value = linea(i)
+        For j = 1 To dias.Count
+            ActiveCell.Offset(0, (j * 3) - 2).Value = dias(j)
+            Range(ActiveCell.Offset(0, (j * 3) - 2), ActiveCell.Offset(0, (j * 3))).Merge
+            ActiveCell.Offset(1, j * 3).Value = "Tiempo"
+            ActiveCell.Offset(1, (j * 3) - 1).Value = "Barras"
+            ActiveCell.Offset(1, (j * 3) - 2).Value = "Referencia"
+            For Each r In rng_linea
+                If r = linea(i) Then
+                    If r.Offset(0, 1).Value = dias(j) Then
+                        'Pintar referencias
+                        ActiveCell.Offset(contafilas, (j * 3) - 2) = r.Offset(0, 2).Value
+                        ActiveCell.Offset(contafilas, (j * 3) - 1) = r.Offset(0, 3).Value
+                        ActiveCell.Offset(contafilas, j * 3) = r.Offset(0, 4).Value
+                        contafilas = contafilas + 1
+                        If contafilas > maxContafilas Then
+                            maxContafilas = contafilas
+                        End If
+                    End If
+                End If
+            Next r
+            contafilas = 2
+        Next j
+        ActiveCell.Offset(maxContafilas, 0).Activate
+        maxContafilas = 2
+    Next i
+    
+    rango_tabla_resumen.CurrentRegion.EntireColumn.HorizontalAlignment = xlCenter
+
+    
+    Debug.Print ""
+End Sub
